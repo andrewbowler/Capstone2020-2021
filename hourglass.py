@@ -16,7 +16,10 @@ red    = (240, 180, 159)
 
 pg.init()                               # Starts the PyGame engine
 pg.display.set_caption('Visual Timer')  # The window titla
+
+# Some preset fonts used throughout the script
 my_font = pg.font.SysFont('Comic Sans MS', 20)
+pad_font = pg.font.SysFont('Comic Sans MS', 30)
 title_font = pg.font.SysFont('Comic Sans MS', 50)
 
 # Set the height and width of the screen
@@ -47,9 +50,14 @@ def draw_gradient(r, g, b):
             b -= abs((yellow[2] - red[2])) / 160
         pg.display.flip()
 
+
 # The timer screen
 def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
+    menu_tick_one, menu_tick_two = white, white
+    reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
+    reset_time, menu_time = 0, 0
+    reset_counter, menu_counter = 0, 0
     resolution = timer / 480
     screen.fill(l_grey)
     draw_gradient(green[0], green[1], green[2])
@@ -75,6 +83,23 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         screen.blit(label_reset, [50, 235])
         screen.blit(label_menu, [700, 235])
 
+        # Rectangles for the reset/menu buttons
+        pg.draw.rect(screen, white, [55, 300, 40, 20])
+        pg.draw.rect(screen, black, [55, 300, 40, 20], 4)
+        pg.draw.rect(screen, black, [59, 306, 9, 9], 3, border_radius=3)
+        pg.draw.rect(screen, black, [71, 306, 9, 9], 3, border_radius=3)
+        pg.draw.rect(screen, black, [83, 306, 9, 9], 3, border_radius=3)
+        pg.draw.rect(screen, reset_tick_one,   [59, 306, 9, 9], border_radius=3)
+        pg.draw.rect(screen, reset_tick_two,   [71, 306, 9, 9], border_radius=3)
+        pg.draw.rect(screen, reset_tick_three, [83, 306, 9, 9], border_radius=3)
+
+        pg.draw.rect(screen, white, [705, 300, 40, 20])
+        pg.draw.rect(screen, black, [705, 300, 40, 20], 4)
+        pg.draw.rect(screen, black, [709, 306, 9, 9], 3, border_radius=3)
+        pg.draw.rect(screen, black, [721, 306, 9, 9], 3, border_radius=3)
+        pg.draw.rect(screen, menu_tick_one,   [709, 306, 9, 9], border_radius=3)
+        pg.draw.rect(screen, menu_tick_two,   [721, 306, 9, 9], border_radius=3)
+
         # Handles closing the window or any button presses
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -82,11 +107,27 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
                 if button_menu.collidepoint(pos):
-                    main_screen(done=False)
+                    menu_counter += 1
+                    menu_time = float(time.time())
+                    if menu_counter == 1:
+                        menu_tick_one = black
+                    if menu_counter == 2:
+                        menu_tick_two = black
+                    if menu_counter == 3:
+                        main_screen(done=False)
                 if button_reset.collidepoint(pos):
-                    draw_gradient(green[0], green[1], green[2])
-                    top = 1
-                    check = 0.00
+                    reset_counter += 1
+                    reset_time = float(time.time())
+                    if reset_counter == 1:
+                        reset_tick_one = black
+                    if reset_counter == 2:
+                        reset_tick_two = black
+                    if reset_counter == 3:
+                        reset_tick_three = black
+                        draw_gradient(green[0], green[1], green[2])
+                        top = 1
+                        check = 0.00
+                        reset_counter = 0
 
         # If enough time has passed, remove a layer of pixels
         if check < float(time.time()):
@@ -95,69 +136,166 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             check = float(time.time()) + resolution
             top += 1
 
+        if (reset_time + 3) < float(time.time()):
+            reset_counter = 0
+            reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
+
+        if (menu_time + 3) < float(time.time()):
+            menu_counter = 0
+            menu_tick_one, menu_tick_two = white, white
+
+        if top == 480:
+            label_menu_text = title_font.render('Time is up!', True, black)
+            screen.blit(label_menu_text, [270, 180])
+
         pg.display.flip()   # Updates the screen
 
 
+# On this screen you can input a custom time in minutes and set the timer to that
 def custom_time(done=False):
     screen.fill(l_grey)
-
+    timer_custom = ''
     while not done:
-
         label_menu_text = title_font.render('Enter your time (minutes):', True, black)
         screen.blit(label_menu_text, [100, 50])
 
         pg.draw.rect(screen, white, [290, 150, 220, 60], border_radius=10)
-        pg.draw.rect(screen, black, [290, 150, 220, 60], 8, border_radius=10)
+        pg.draw.rect(screen, black, [290, 150, 220, 60], 6, border_radius=10)
 
-        pg.draw.rect(screen, d_grey, [310, 220, 60, 60], border_radius=10)        # 1
-        pg.draw.rect(screen, black,  [370, 220, 60, 60], border_radius=10)        # 2
-        pg.draw.rect(screen, d_grey, [430, 220, 60, 60], border_radius=10)        # 3
+        lcd_text = pad_font.render(timer_custom, True, black)
+        screen.blit(lcd_text, [300, 157])
 
-        pg.draw.rect(screen, black,  [310, 280, 60, 60], border_radius=10)        # 4
-        pg.draw.rect(screen, d_grey, [370, 280, 60, 60], border_radius=10)        # 5
-        pg.draw.rect(screen, black,  [430, 280, 60, 60], border_radius=10)        # 6
+        button_one = pg.draw.rect(screen, d_grey, [310, 220, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [310, 220, 60, 60], 2, border_radius=10)
+        label_one = pad_font.render('1', True, black)
+        screen.blit(label_one, [333, 230])
 
-        pg.draw.rect(screen, d_grey, [310, 340, 60, 60], border_radius=10)        # 7
-        pg.draw.rect(screen, black,  [370, 340, 60, 60], border_radius=10)        # 8
-        pg.draw.rect(screen, d_grey, [430, 340, 60, 60], border_radius=10)        # 9
+        button_two = pg.draw.rect(screen, d_grey, [370, 220, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [370, 220, 60, 60], 2, border_radius=10)
+        label_two = pad_font.render('2', True, black)
+        screen.blit(label_two, [393, 230])
 
-        pg.draw.rect(screen, red,    [310, 400, 60, 60], border_radius=10)        # Backspace button
-        pg.draw.rect(screen, d_grey, [370, 400, 60, 60], border_radius=10)        # 0
-        pg.draw.rect(screen, green,  [430, 400, 60, 60], border_radius=10)      # Enter button
+        button_three = pg.draw.rect(screen, d_grey, [430, 220, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [430, 220, 60, 60], 2, border_radius=10)
+        label_three = pad_font.render('3', True, black)
+        screen.blit(label_three, [453, 230])
 
-        button_reset = pg.draw.circle(screen, white, [725, 400], 40)
+        button_four = pg.draw.rect(screen, d_grey, [310, 280, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [310, 280, 60, 60], 2, border_radius=10)
+        label_four = pad_font.render('4', True, black)
+        screen.blit(label_four, [333, 290])
+
+        button_five = pg.draw.rect(screen, d_grey, [370, 280, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [370, 280, 60, 60], 2, border_radius=10)
+        label_five = pad_font.render('5', True, black)
+        screen.blit(label_five, [393, 290])
+
+        button_six = pg.draw.rect(screen, d_grey, [430, 280, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [430, 280, 60, 60], 2, border_radius=10)
+        label_six = pad_font.render('6', True, black)
+        screen.blit(label_six, [453, 290])
+
+        button_seven = pg.draw.rect(screen, d_grey, [310, 340, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [310, 340, 60, 60], 2, border_radius=10)
+        label_seven = pad_font.render('7', True, black)
+        screen.blit(label_seven, [333, 350])
+
+        button_eight = pg.draw.rect(screen, d_grey, [370, 340, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [370, 340, 60, 60], 2, border_radius=10)
+        label_eight = pad_font.render('8', True, black)
+        screen.blit(label_eight, [393, 350])
+
+        button_nine = pg.draw.rect(screen, d_grey, [430, 340, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [430, 340, 60, 60], 2, border_radius=10)
+        label_nine = pad_font.render('9', True, black)
+        screen.blit(label_nine, [453, 350])
+
+        button_del = pg.draw.rect(screen, red,    [310, 400, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [310, 400, 60, 60], 2, border_radius=10)
+        label_del = pad_font.render('Del', True, black)
+        screen.blit(label_del, [317, 410])
+
+        button_zero = pg.draw.rect(screen, d_grey, [370, 400, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [370, 400, 60, 60], 2, border_radius=10)
+        label_zero = pad_font.render('0', True, black)
+        screen.blit(label_zero, [393, 410])
+
+        button_go = pg.draw.rect(screen, green,  [430, 400, 60, 60], border_radius=10)
+        pg.draw.rect(screen, black,  [430, 400, 60, 60], 2, border_radius=10)
+        label_go = pad_font.render('Go', True, black)
+        screen.blit(label_go, [445, 410])
+
+        button_menu  = pg.draw.circle(screen, white, [725, 400], 40)
         button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
-        label_menu = my_font.render('Menu', True, black)
+        label_menu   = my_font.render('Menu', True, black)
         screen.blit(label_menu, [700, 385])
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
                 exit()
+            if event.type == MOUSEBUTTONDOWN and event.button == 1:
+                pos = pg.mouse.get_pos()
+                if button_menu.collidepoint(pos):
+                    main_screen(done=False)
+                if button_one.collidepoint(pos):
+                    timer_custom += '1'
+                if button_two.collidepoint(pos):
+                    timer_custom += '2'
+                if button_three.collidepoint(pos):
+                    timer_custom += '3'
+                if button_four.collidepoint(pos):
+                    timer_custom += '4'
+                if button_five.collidepoint(pos):
+                    timer_custom += '5'
+                if button_six.collidepoint(pos):
+                    timer_custom += '6'
+                if button_seven.collidepoint(pos):
+                    timer_custom += '7'
+                if button_eight.collidepoint(pos):
+                    timer_custom += '8'
+                if button_nine.collidepoint(pos):
+                    timer_custom += '9'
+                if button_del.collidepoint(pos):
+                    timer_custom = timer_custom[:-1]
+                if button_zero.collidepoint(pos):
+                    timer_custom += '0'
+                if button_go.collidepoint(pos):
+                    if timer_custom != '':
+                        timer_screen(False, 0.00, 1, 60 * int(timer_custom))
+                    else:
+                        pass
+                if len(timer_custom) > 6:
+                    timer_custom = timer_custom[:-1]
 
         pg.display.flip()
 
 
+# Main function. Pressing a button with a time on it sets the timer to that time, or you can set a custom time
 def main_screen(done=False):
     screen.fill(l_grey)
 
     while not done:
         # Draws the buttons
         button_10min = pg.draw.circle(screen, white, [160, 260], 60)
+        button_10bor = pg.draw.circle(screen, black, [160, 260], 60, 4)
         button_15min = pg.draw.circle(screen, white, [320, 260], 60)
+        button_15bor = pg.draw.circle(screen, black, [320, 260], 60, 4)
         button_30min = pg.draw.circle(screen, white, [480, 260], 60)
+        button_30bor = pg.draw.circle(screen, black, [480, 260], 60, 4)
         button_60min = pg.draw.circle(screen, white, [640, 260], 60)
-
+        button_60bor = pg.draw.circle(screen, black, [640, 260], 60, 4)
         button_custom = pg.draw.rect(screen, white, [240, 380, 320, 75], border_radius=15)
+        button_custom = pg.draw.rect(screen, black, [240, 380, 320, 75], 4, border_radius=15)
 
         # Creates the text
         label_10min = my_font.render('10 min', True, black)
         label_15min = my_font.render('15 min', True, black)
         label_30min = my_font.render('30 min', True, black)
         label_60min = my_font.render('60 min', True, black)
-
         label_custom = my_font.render('Custom Time', True, black)
 
+        # Large splash screen text
         label_menu_text = title_font.render('Please select a time', True, black)
 
         # Turns the buttons into objects
@@ -165,9 +303,7 @@ def main_screen(done=False):
         screen.blit(label_15min, [290, 245])
         screen.blit(label_30min, [450, 245])
         screen.blit(label_60min, [610, 245])
-
         screen.blit(label_custom, [340, 400])
-
         screen.blit(label_menu_text, [190, 80])
 
         # Event handler
@@ -194,3 +330,9 @@ def main_screen(done=False):
 main_screen()
 
 pg.quit()   # IDLE-friendly exit line
+
+
+# TODO:
+# 1. Bridgewell (and UML?) logo could go somewhere
+# 2. Add a help document
+# 3. Colorblind mode
