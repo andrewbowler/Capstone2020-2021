@@ -1,3 +1,25 @@
+##**************************************************
+## FILE:        hourglass.py
+## PROJECT:     Bridgewell Visual Timer
+## DATE:        20210222
+## AUTHOR:      Drew Bowler
+## PHONE #:     (978) 763-5124
+## EMAIL:       arbowl@tutanota.com
+##
+## PURPOSE:     To display a visual hourglass timer
+##              to track the passage of time for
+##              those with cognitive impairments
+##              that struggle to intuitively
+##              understand traditional clocks.
+##
+## INPUT:       User input (time in minutes)
+## OUTPUT:      Hourglass timer visuals
+##
+## REVISED:     20210223
+##
+## COMMENT:     Fixed time spent/left over/underflow
+##**************************************************
+
 import os
 import sys
 import time
@@ -5,17 +27,17 @@ import math
 import pygame as pg
 from pygame.locals import *
 
-# Declares the color values; these are purposely muted to be autism-friendly
+# Declares the color values; these are purposely muted to be easy on the eyes
 black  = (  0,   0,   0)
 white  = (255, 255, 255)
-d_grey = (211, 211, 211)
-l_grey = (230, 230, 230)
+d_grey = (166, 166, 166)
+l_grey = (220, 220, 220)
 green  = (182, 214, 193)
 yellow = (232, 205, 160)
 red    = (240, 180, 159)
 
 pg.init()                               # Starts the PyGame engine
-pg.display.set_caption('Visual Timer')  # The window titla
+pg.display.set_caption('Visual Timer')  # The window title
 
 # Some preset fonts used throughout the script
 tiny_font  = pg.font.SysFont('Comic Sans MS', 15)
@@ -55,6 +77,7 @@ def draw_gradient(r, g, b):
 # The timer screen
 def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
+    times_up = False
     menu_tick_one, menu_tick_two = white, white
     reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
     reset_time, menu_time = 0, 0
@@ -104,7 +127,8 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         pg.draw.rect(screen, black, [733, 306, 9, 9], 3, border_radius=3)
 
         # Time elapsed in minutes
-        time_spent = math.floor(top * resolution / 60)
+        if times_up is False:
+            time_spent = math.floor(top * resolution / 60)
 
         # Handles the plural of "minute"
         if time_spent == 1:
@@ -122,7 +146,8 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             spent_spacing = 24
 
         # Time left in minutes
-        time_left = math.ceil((480 - top) * resolution / 60)
+        if times_up is False:
+            time_left = math.ceil((480 - top) * resolution / 60)
 
         # Handles the plural of "minute"
         if time_left == 1:
@@ -159,6 +184,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
+
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
                 if button_menu.collidepoint(pos):
@@ -170,19 +196,24 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                         menu_tick_two = black
                     if menu_counter == 3:
                         main_screen(done=False)
+
                 if button_reset.collidepoint(pos):
                     reset_counter += 1
                     reset_time = float(time.time())
+
                     if reset_counter == 1:
                         reset_tick_one = black
+
                     if reset_counter == 2:
                         reset_tick_two = black
+
                     if reset_counter == 3:
                         reset_tick_three = black
                         draw_gradient(green[0], green[1], green[2])
                         top = 1
                         check = 0.00
                         reset_counter = 0
+                        times_up = False
 
         # If enough time has passed, remove a layer of pixels
         if check < float(time.time()):
@@ -203,9 +234,12 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
         # If the timer reaches the bottom, it displays "Time is up!" Users can reset or go back to menu
         if top == 480:
+            times_up = True
+            time_left    = 0
+            time_spent   = math.floor(timer / 60)
             time_elapsed = math.ceil(timer / 60)
             label_time_is_up    = title_font.render('Time is up!', True, black)
-            label_time_elapsed  = pad_font.render('(' + str(time_elapsed) + ' minutes elasped)', True, black)
+            label_time_elapsed  = pad_font.render('(' + str(time_elapsed) + ' minutes elapsed)', True, black)
             screen.blit(label_time_is_up, [270, 180])
             screen.blit(label_time_elapsed, [260, 250])
 
@@ -296,37 +330,51 @@ def custom_time(done=False):
             if event.type == pg.QUIT:
                 done = True
                 exit()
+
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
                 if button_menu.collidepoint(pos):
                     main_screen(done=False)
+
                 if button_one.collidepoint(pos):
                     timer_custom += '1'
+
                 if button_two.collidepoint(pos):
                     timer_custom += '2'
+
                 if button_three.collidepoint(pos):
                     timer_custom += '3'
+
                 if button_four.collidepoint(pos):
                     timer_custom += '4'
+
                 if button_five.collidepoint(pos):
                     timer_custom += '5'
+
                 if button_six.collidepoint(pos):
                     timer_custom += '6'
+
                 if button_seven.collidepoint(pos):
                     timer_custom += '7'
+
                 if button_eight.collidepoint(pos):
                     timer_custom += '8'
+
                 if button_nine.collidepoint(pos):
                     timer_custom += '9'
+
                 if button_del.collidepoint(pos):
                     timer_custom = timer_custom[:-1]
+
                 if button_zero.collidepoint(pos):
                     timer_custom += '0'
+
                 if button_go.collidepoint(pos):
                     if timer_custom != '':
                         timer_screen(False, 0.00, 1, 60 * int(timer_custom))
                     else:
                         pass
+
                 if len(timer_custom) > 6:
                     timer_custom = timer_custom[:-1]
 
@@ -338,17 +386,21 @@ def help_screen(done=False):
 
     uml = pg.image.load('uml.jpg').convert()
     bw  = pg.image.load('bw.jpg').convert()
-    screen.blit(uml, [0, 0])
-    screen.blit(bw, [700, 0])
+
+    label_help_title = title_font.render('Bridgewell Visual Timer', True, black)
     # What should go here:
     # 1. Purpose of this project
     # 2. Contact info
     # 3. How to use
     # 4. Charging cable info
-
     button_menu = pg.draw.circle(screen, white, [725, 400], 40)
     button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
+
     label_menu = my_font.render('Menu', True, black)
+
+    screen.blit(uml, [0, 0])
+    screen.blit(bw, [700, 0])
+    screen.blit(label_help_title, [130, 80])
     screen.blit(label_menu, [700, 385])
 
     while not done:
@@ -357,8 +409,10 @@ def help_screen(done=False):
             if event.type == pg.QUIT:
                 done = True
                 exit()
+
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
+
                 if button_menu.collidepoint(pos):
                     main_screen(done=False)
 
@@ -378,8 +432,8 @@ def main_screen(done=False):
     button_30bor   = pg.draw.circle(screen, black, [480, 260], 60, 4)
     button_60min   = pg.draw.circle(screen, white, [640, 260], 60)
     button_60bor   = pg.draw.circle(screen, black, [640, 260], 60, 4)
-    button_custom  = pg.draw.rect(screen, white, [240, 380, 320, 75], border_radius=15)
-    button_custom  = pg.draw.rect(screen, black, [240, 380, 320, 75], 4, border_radius=15)
+    button_custom  = pg.draw.rect(screen, white,   [240, 380, 320, 75], border_radius=15)
+    button_custom  = pg.draw.rect(screen, black,   [240, 380, 320, 75], 4, border_radius=15)
     button_help    = pg.draw.circle(screen, white, [50, 430], 30)
     button_helpbor = pg.draw.circle(screen, black, [50, 430], 30, 4)
 
@@ -409,18 +463,25 @@ def main_screen(done=False):
             if event.type == pg.QUIT:
                 done = True
                 exit()
+
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
+
                 if button_10min.collidepoint(pos):
                     timer_screen(False, 0.00, 1, 600)
+
                 if button_15min.collidepoint(pos):
                     timer_screen(False, 0.00, 1, 900)
+
                 if button_30min.collidepoint(pos):
                     timer_screen(False, 0.00, 1, 1800)
+
                 if button_60min.collidepoint(pos):
                     timer_screen(False, 0.00, 1, 3600)
+
                 if button_custom.collidepoint(pos):
                     custom_time()
+
                 if button_help.collidepoint(pos):
                     help_screen()
 
