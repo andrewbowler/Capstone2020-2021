@@ -31,6 +31,7 @@ from pygame.locals import *
 black  = (  0,   0,   0)
 white  = (255, 255, 255)
 d_grey = (166, 166, 166)
+m_grey = (200, 200, 200)
 l_grey = (220, 220, 220)
 green  = (182, 214, 193)
 yellow = (232, 205, 160)
@@ -77,6 +78,8 @@ def print_line(text, size, x, y):
 def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
     times_up = False
+    flash_check = 0
+    time_finished = 0
     menu_tick_one, menu_tick_two = white, white
     reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
     reset_time, menu_time = 0, 0
@@ -125,11 +128,9 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         if times_up is False:
             time_spent = math.floor(top * resolution / 60)
 
-        # Handles the plural of "minute"
-        if time_spent == 1:
-            spent_minute = ' minute'
-        else:
-            spent_minute = ' minutes'
+        # Time left in minutes
+        if times_up is False:
+            time_left = math.ceil((480 - top) * resolution / 60)
 
         # Handles the spacing for 0, 1, and double digit numbers
         if len(str(time_spent)) < 2:
@@ -140,9 +141,11 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         else:
             spent_spacing = 24
 
-        # Time left in minutes
-        if times_up is False:
-            time_left = math.ceil((480 - top) * resolution / 60)
+        # Handles the plural of "minute"
+        if time_spent == 1:
+            spent_minute = ' minute'
+        else:
+            spent_minute = ' minutes'
 
         # Handles the plural of "minute"
         if time_left == 1:
@@ -162,7 +165,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         # Rectangles for "time spent"
         pg.draw.rect(screen, white, [20, 20, 110, 100], border_radius=15)
         pg.draw.rect(screen, black, [20, 20, 110, 100], 4, border_radius=15)
-        print_line('Time Spent:', 15, 33, 40)
+        print_line('Time Spent:', 15, 33, 30)
         print_line(str(time_spent) + spent_minute, 20, spent_spacing, 65)
 
         # Rectangles for "time left"
@@ -170,6 +173,71 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         pg.draw.rect(screen, black, [670, 20, 110, 100], 4, border_radius=15)
         print_line('Time Left:', 15, 690, 30)
         print_line(str(time_left) + left_minute, 20, left_spacing, 65)
+
+        # If enough time has passed, remove a layer of pixels
+        if check < float(time.time()):
+            pg.draw.rect(screen, d_grey, [156, top, 488, 1])        # Fills in the top line with the bkgnd color
+
+            # This "if" statement flashes the background of the timer in shades of grey for the last 5%
+            if top >= 456 and times_up is False:
+                if math.floor(time.time()) % 3 != 0:
+                    pg.draw.rect(screen, m_grey, [150, 3, 500, top - 3], border_top_left_radius=15, border_top_right_radius=15)
+                    pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
+                else:
+                    pg.draw.rect(screen, d_grey, [150, 6, 500, top - 3], border_radius=15)
+                    pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
+
+            pg.draw.rect(screen, black, [153, (top + 1), 494, 3])   # Makes the top line thicker & black
+            check = float(time.time()) + resolution
+            top += 1
+
+        # Resets the reset counter if it hasn't been pressed for 3 seconds
+        if (reset_time + 3) < float(time.time()):
+            reset_counter = 0
+            reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
+
+        # Resets the menu counter if it hasn't been pressed for 3 seconds
+        if (menu_time + 3) < float(time.time()):
+            menu_counter = 0
+            menu_tick_one, menu_tick_two = white, white
+
+        # If the timer reaches the bottom, it displays "Time is up!" Users can reset or go back to menu
+        if top > 480:
+            times_up      = True
+            time_left     = 0
+            time_spent    = math.floor(timer / 60)
+            time_elapsed  = math.ceil(timer / 60)
+            pg.draw.rect(screen, d_grey, [150, 6, 500, 480], border_radius=15)
+            pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
+
+            # If only one minute is set, the grammar will still be correct (and correctly spaced)
+            if time_elapsed == 1:
+                elapsed_minute  = ' minute elapsed)'
+                elapsed_spacing = 270
+            else:
+                elapsed_minute  = ' minutes elapsed)'
+                elapsed_spacing = 260
+
+            # Shows how long the timer has been done for when it runs out
+            if time_finished == 0:
+                pg.draw.rect(screen, d_grey, [320, 300, 200, 100])
+                time_finished_start = math.floor(time.time())
+                seconds_displayed = '00'
+                minutes_displayed = '0'
+                time_finished = 1
+            else:
+                pg.draw.rect(screen, d_grey, [320, 300, 200, 100])
+                seconds_finished  = math.floor(time.time()) - time_finished_start
+                minutes_displayed = str(math.floor(seconds_finished / 60))
+                seconds_displayed = str(math.floor(seconds_finished) % 60)
+
+                if len(seconds_displayed) == 1:
+                    seconds_displayed = '0' + seconds_displayed
+
+                print_line(minutes_displayed + ':' + seconds_displayed, 30, 365, 350)
+
+            print_line('Time is up!', 50, 270, 180)
+            print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
 
         # Handles closing the window or any button presses
         for event in pg.event.get():
@@ -203,43 +271,9 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                         draw_gradient(green[0], green[1], green[2])
                         top = 1
                         check = 0.00
+                        time_finished = 0
                         reset_counter = 0
                         times_up = False
-
-        # If enough time has passed, remove a layer of pixels
-        if check < float(time.time()):
-            pg.draw.rect(screen, d_grey, [153, top, 494, 1])        # Fills in the top line with the bkgnd color
-            pg.draw.rect(screen, black, [153, (top + 1), 494, 3])   # Makes the top line thicker & black
-            check = float(time.time()) + resolution
-            top += 1
-
-        # Resets the reset counter if it hasn't been pressed for 3 seconds
-        if (reset_time + 3) < float(time.time()):
-            reset_counter = 0
-            reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
-
-        # Resets the menu counter if it hasn't been pressed for 3 seconds
-        if (menu_time + 3) < float(time.time()):
-            menu_counter = 0
-            menu_tick_one, menu_tick_two = white, white
-
-        # If the timer reaches the bottom, it displays "Time is up!" Users can reset or go back to menu
-        if top == 480:
-            times_up     = True
-            time_left    = 0
-            time_spent   = math.floor(timer / 60)
-            time_elapsed = math.ceil(timer / 60)
-
-            # If only one minute is set, the grammar will still be correct (and correctly spaced)
-            if time_elapsed == 1:
-                elapsed_minute  = ' minute elapsed)'
-                elapsed_spacing = 270
-            else:
-                elapsed_minute  = ' minutes elapsed)'
-                elapsed_spacing = 260
-
-            print_line('Time is up!', 50, 270, 180)
-            print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
 
         pg.display.flip()   # Updates the screen
 
@@ -476,7 +510,3 @@ def main_screen(done=False):
 main_screen()
 
 pg.quit()   # IDLE-friendly exit line
-
-# TODO:
-# 1. Countdown for last ~30 sec
-# 2. How long it's been since the timer ran out
