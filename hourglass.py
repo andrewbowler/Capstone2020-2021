@@ -39,12 +39,6 @@ red    = (240, 180, 159)
 pg.init()                               # Starts the PyGame engine
 pg.display.set_caption('Visual Timer')  # The window title
 
-# Some preset fonts used throughout the script
-tiny_font  = pg.font.SysFont('Comic Sans MS', 15)
-my_font    = pg.font.SysFont('Comic Sans MS', 20)
-pad_font   = pg.font.SysFont('Comic Sans MS', 30)
-title_font = pg.font.SysFont('Comic Sans MS', 50)
-
 # Set the height and width of the screen
 # RasPi 7" screen is 800x480
 # Use the first screen line for testing and the second for use
@@ -74,6 +68,11 @@ def draw_gradient(r, g, b):
         pg.display.flip()
 
 
+# Easily prints lines of text where maintaining the line as an object isn't important
+def print_line(text, size, x, y):
+    screen.blit(pg.font.SysFont('Comic Sans MS', size).render(text, True, black), [x, y])
+
+
 # The timer screen
 def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
@@ -100,12 +99,8 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         button_outl2 = pg.draw.circle(screen, black, [725, 250], 40, 4)
 
         # Button text
-        label_reset = my_font.render('Reset', True, black)
-        label_menu  = my_font.render('Menu', True, black)
-
-        # Creates objects out of the buttons for click/tap detection
-        screen.blit(label_reset, [50, 235])
-        screen.blit(label_menu, [700, 235])
+        print_line('Reset', 20, 50, 235)
+        print_line('Menu', 20, 700, 235)
 
         # Rectangles and counters for the reset button
         pg.draw.rect(screen, white, [55, 300, 40, 20])
@@ -167,18 +162,14 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         # Rectangles for "time spent"
         pg.draw.rect(screen, white, [20, 20, 110, 100], border_radius=15)
         pg.draw.rect(screen, black, [20, 20, 110, 100], 4, border_radius=15)
-        label_time_spent     = tiny_font.render('Time Spent:', True, black)
-        label_time_spent_num = my_font.render(str(time_spent) + spent_minute, True, black)
-        screen.blit(label_time_spent, [33, 30])
-        screen.blit(label_time_spent_num, [spent_spacing, 65])
+        print_line('Time Spent:', 15, 33, 40)
+        print_line(str(time_spent) + spent_minute, 20, spent_spacing, 65)
 
         # Rectangles for "time left"
         pg.draw.rect(screen, white, [670, 20, 110, 100], border_radius=15)
         pg.draw.rect(screen, black, [670, 20, 110, 100], 4, border_radius=15)
-        label_time_left  = tiny_font.render('Time Left:', True, black)
-        label_time_left_num = my_font.render(str(time_left) + left_minute, True, black)
-        screen.blit(label_time_left, [690, 30])
-        screen.blit(label_time_left_num, [left_spacing, 65])
+        print_line('Time Left:', 15, 690, 30)
+        print_line(str(time_left) + left_minute, 20, left_spacing, 65)
 
         # Handles closing the window or any button presses
         for event in pg.event.get():
@@ -187,9 +178,11 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
+
                 if button_menu.collidepoint(pos):
                     menu_counter += 1
                     menu_time = float(time.time())
+
                     if menu_counter == 1:
                         menu_tick_one = black
                     if menu_counter == 2:
@@ -203,10 +196,8 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
                     if reset_counter == 1:
                         reset_tick_one = black
-
                     if reset_counter == 2:
                         reset_tick_two = black
-
                     if reset_counter == 3:
                         reset_tick_three = black
                         draw_gradient(green[0], green[1], green[2])
@@ -234,14 +225,21 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
         # If the timer reaches the bottom, it displays "Time is up!" Users can reset or go back to menu
         if top == 480:
-            times_up = True
+            times_up     = True
             time_left    = 0
             time_spent   = math.floor(timer / 60)
             time_elapsed = math.ceil(timer / 60)
-            label_time_is_up    = title_font.render('Time is up!', True, black)
-            label_time_elapsed  = pad_font.render('(' + str(time_elapsed) + ' minutes elapsed)', True, black)
-            screen.blit(label_time_is_up, [270, 180])
-            screen.blit(label_time_elapsed, [260, 250])
+
+            # If only one minute is set, the grammar will still be correct (and correctly spaced)
+            if time_elapsed == 1:
+                elapsed_minute  = ' minute elapsed)'
+                elapsed_spacing = 270
+            else:
+                elapsed_minute  = ' minutes elapsed)'
+                elapsed_spacing = 260
+
+            print_line('Time is up!', 50, 270, 180)
+            print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
 
         pg.display.flip()   # Updates the screen
 
@@ -252,79 +250,64 @@ def custom_time(done=False):
     timer_custom = ''
 
     while not done:
-        label_menu_text = title_font.render('Enter your time (minutes):', True, black)
-        screen.blit(label_menu_text, [100, 50])
+        print_line('Enter your time (minutes):', 50, 100, 50)
 
         pg.draw.rect(screen, white, [290, 150, 220, 60], border_radius=10)
         pg.draw.rect(screen, black, [290, 150, 220, 60], 6, border_radius=10)
 
-        lcd_text = pad_font.render(timer_custom, True, black)
-        screen.blit(lcd_text, [300, 157])
+        print_line(timer_custom, 30, 300, 157)
 
         button_one = pg.draw.rect(screen, d_grey, [310, 220, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [310, 220, 60, 60], 2, border_radius=10)
-        label_one = pad_font.render('1', True, black)
-        screen.blit(label_one, [333, 230])
+        print_line('1', 30, 333, 230)
 
         button_two = pg.draw.rect(screen, d_grey, [370, 220, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [370, 220, 60, 60], 2, border_radius=10)
-        label_two = pad_font.render('2', True, black)
-        screen.blit(label_two, [393, 230])
+        print_line('2', 30, 393, 230)
 
         button_three = pg.draw.rect(screen, d_grey, [430, 220, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [430, 220, 60, 60], 2, border_radius=10)
-        label_three = pad_font.render('3', True, black)
-        screen.blit(label_three, [453, 230])
+        print_line('3', 30, 453, 230)
 
         button_four = pg.draw.rect(screen, d_grey, [310, 280, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [310, 280, 60, 60], 2, border_radius=10)
-        label_four = pad_font.render('4', True, black)
-        screen.blit(label_four, [333, 290])
+        print_line('4', 30, 333, 290)
 
         button_five = pg.draw.rect(screen, d_grey, [370, 280, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [370, 280, 60, 60], 2, border_radius=10)
-        label_five = pad_font.render('5', True, black)
-        screen.blit(label_five, [393, 290])
+        print_line('5', 30, 393, 290)
 
         button_six = pg.draw.rect(screen, d_grey, [430, 280, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [430, 280, 60, 60], 2, border_radius=10)
-        label_six = pad_font.render('6', True, black)
-        screen.blit(label_six, [453, 290])
+        print_line('6', 30, 453, 290)
 
         button_seven = pg.draw.rect(screen, d_grey, [310, 340, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [310, 340, 60, 60], 2, border_radius=10)
-        label_seven = pad_font.render('7', True, black)
-        screen.blit(label_seven, [333, 350])
+        print_line('7', 30, 333, 350)
 
         button_eight = pg.draw.rect(screen, d_grey, [370, 340, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [370, 340, 60, 60], 2, border_radius=10)
-        label_eight = pad_font.render('8', True, black)
-        screen.blit(label_eight, [393, 350])
+        print_line('8', 30, 393, 350)
 
         button_nine = pg.draw.rect(screen, d_grey, [430, 340, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [430, 340, 60, 60], 2, border_radius=10)
-        label_nine = pad_font.render('9', True, black)
-        screen.blit(label_nine, [453, 350])
+        print_line('9', 30, 453, 350)
 
         button_del = pg.draw.rect(screen, red,    [310, 400, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [310, 400, 60, 60], 2, border_radius=10)
-        label_del = pad_font.render('Del', True, black)
-        screen.blit(label_del, [317, 410])
+        print_line('Del', 30, 317, 410)
 
         button_zero = pg.draw.rect(screen, d_grey, [370, 400, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [370, 400, 60, 60], 2, border_radius=10)
-        label_zero = pad_font.render('0', True, black)
-        screen.blit(label_zero, [393, 410])
+        print_line('0', 30, 393, 410)
 
         button_go = pg.draw.rect(screen, green,  [430, 400, 60, 60], border_radius=10)
         pg.draw.rect(screen, black,  [430, 400, 60, 60], 2, border_radius=10)
-        label_go = pad_font.render('Go', True, black)
-        screen.blit(label_go, [445, 410])
+        print_line('Go', 30, 445, 410)
 
         button_menu  = pg.draw.circle(screen, white, [725, 400], 40)
         button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
-        label_menu   = my_font.render('Menu', True, black)
-        screen.blit(label_menu, [700, 385])
+        print_line('Menu', 30, 700, 385)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -381,27 +364,38 @@ def custom_time(done=False):
         pg.display.flip()
 
 
+# Displays information about how to use, how to charge, who to contact, etc.
 def help_screen(done=False):
     screen.fill(l_grey)
 
     uml = pg.image.load('uml.jpg').convert()
     bw  = pg.image.load('bw.jpg').convert()
 
-    label_help_title = title_font.render('Bridgewell Visual Timer', True, black)
-    # What should go here:
-    # 1. Purpose of this project
-    # 2. Contact info
-    # 3. How to use
-    # 4. Charging cable info
+    print_line('Bridgewell Visual Timer', 50, 130, 80)
+
+    print_line('This visual timer was designed in the spring of 2021 by capstone engineering students at the University', 15, 40, 180)
+    print_line('of Massachusetts Lowell for the clients at Bridgewell.', 15, 40, 195)
+
+    print_line('To enter a time, either select a time on the main menu screen, or input a custom time via the number pad', 15, 40, 230)
+    print_line('on the "Custom Time" screen.', 15, 40, 245)
+
+    print_line('To reset the timer at the last given time or go back to the main menu from the timer screen, press either', 15, 40, 280)
+    print_line('button three times within three seconds.', 15, 40, 295)
+
+    print_line('To charge the device, use a USB-C cable connected to a wall wart (most normal phone charger blocks,', 15, 40, 330)
+    print_line('including those for iPhones, will work).', 15, 40, 345)
+
+    print_line('For any questions not answered in the manual, please contact the creator at:', 15, 40, 380)
+    print_line('Phone: (978) 763-5124', 15, 40, 395)
+    print_line('Email: arbowl@tutanota.com', 15, 40, 410)
+
     button_menu = pg.draw.circle(screen, white, [725, 400], 40)
     button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
 
-    label_menu = my_font.render('Menu', True, black)
+    print_line('Menu', 20, 700, 385)
 
     screen.blit(uml, [0, 0])
     screen.blit(bw, [700, 0])
-    screen.blit(label_help_title, [130, 80])
-    screen.blit(label_menu, [700, 385])
 
     while not done:
         # Event handler
@@ -433,29 +427,20 @@ def main_screen(done=False):
     button_60min   = pg.draw.circle(screen, white, [640, 260], 60)
     button_60bor   = pg.draw.circle(screen, black, [640, 260], 60, 4)
     button_custom  = pg.draw.rect(screen, white,   [240, 380, 320, 75], border_radius=15)
-    button_custom  = pg.draw.rect(screen, black,   [240, 380, 320, 75], 4, border_radius=15)
+    button_cusbor  = pg.draw.rect(screen, black,   [240, 380, 320, 75], 4, border_radius=15)
     button_help    = pg.draw.circle(screen, white, [50, 430], 30)
     button_helpbor = pg.draw.circle(screen, black, [50, 430], 30, 4)
 
     # Creates the text
-    label_10min  = my_font.render('10 min', True, black)
-    label_15min  = my_font.render('15 min', True, black)
-    label_30min  = my_font.render('30 min', True, black)
-    label_60min  = my_font.render('60 min', True, black)
-    label_custom = my_font.render('Custom Time', True, black)
-    label_help   = my_font.render('Help', True, black)
+    print_line('10 min', 20, 130, 245)
+    print_line('15 min', 20, 290, 245)
+    print_line('30 min', 20, 450, 245)
+    print_line('60 min', 20, 610, 245)
+    print_line('Custom Time', 20, 340, 400)
+    print_line('Help', 20, 29, 415)
 
     # Large splash screen text
-    label_menu_text = title_font.render('Please select a time', True, black)
-
-    # Turns the buttons into objects
-    screen.blit(label_10min, [130, 245])
-    screen.blit(label_15min, [290, 245])
-    screen.blit(label_30min, [450, 245])
-    screen.blit(label_60min, [610, 245])
-    screen.blit(label_custom, [340, 400])
-    screen.blit(label_menu_text, [170, 80])
-    screen.blit(label_help, [29, 415])
+    print_line('Please select a time:', 50, 170, 80)
 
     while not done:
         # Event handler
@@ -491,3 +476,7 @@ def main_screen(done=False):
 main_screen()
 
 pg.quit()   # IDLE-friendly exit line
+
+# TODO:
+# 1. Countdown for last ~30 sec
+# 2. How long it's been since the timer ran out
