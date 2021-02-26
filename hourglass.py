@@ -31,7 +31,6 @@ from pygame.locals import *
 black  = (  0,   0,   0)
 white  = (255, 255, 255)
 d_grey = (166, 166, 166)
-m_grey = (200, 200, 200)
 l_grey = (220, 220, 220)
 green  = (182, 214, 193)
 yellow = (232, 205, 160)
@@ -43,29 +42,32 @@ pg.display.set_caption('Visual Timer')  # The window title
 # Set the height and width of the screen
 # RasPi 7" screen is 800x480
 # Use the first screen line for testing and the second for use
-screen = pg.display.set_mode([800, 480])
+x_res = 800
+y_res = 480
+screen = pg.display.set_mode([x_res, y_res])
 #screen = pg.display.set_mode(size, pg.FULLSCREEN)
 
 
 # Function to draw the timer as a gradient from green to yellow to red
 def draw_gradient(r, g, b):
-    for i in range(476):    # This for loop is lower than 480 so it doesn't go past the rounded corners of the timer
+    for i in range(y_res - 4):    # This for loop is lower than 480 so it doesn't go past the rounded corners of the timer
         pg.draw.rect(screen, [math.floor(r), math.floor(g), math.floor(b)], [153, i, 494, 1])
 
         if r <= yellow[0]:
-            r += abs((green[0] - yellow[0])) / 160
+            r += abs((green[0] - yellow[0])) / (y_res / 3)
         elif r > yellow[0]:
-            r += abs((yellow[0] - red[0])) / 160
+            r += abs((yellow[0] - red[0])) / (y_res / 3)
 
         if g >= yellow[1]:
-            g -= abs((green[1] - yellow[1])) / 160
+            g -= abs((green[1] - yellow[1])) / (y_res / 3)
         elif g < yellow[1]:
-            g -= abs((yellow[1] - red[1])) / 160
+            g -= abs((yellow[1] - red[1])) / (y_res / 3)
 
         if b >= yellow[2]:
-            b -= abs((green[2] - yellow[2])) / 160
+            b -= abs((green[2] - yellow[2])) / (y_res / 3)
         elif b < yellow[2]:
-            b -= abs((yellow[2] - red[2])) / 160
+            b -= abs((yellow[2] - red[2])) / (y_res / 3)
+
         pg.display.flip()
 
 
@@ -78,13 +80,12 @@ def print_line(text, size, x, y):
 def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
     times_up = False
-    flash_check = 0
     time_finished = 0
     menu_tick_one, menu_tick_two = white, white
     reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
     reset_time, menu_time = 0, 0
     reset_counter, menu_counter = 0, 0
-    resolution = timer / 480
+    resolution = timer / y_res
     screen.fill(l_grey)
     draw_gradient(green[0], green[1], green[2])
 
@@ -95,11 +96,11 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
         # Reset button with black outline
         button_reset = pg.draw.circle(screen, white, [75, 250], 40)
-        button_outl1 = pg.draw.circle(screen, black, [75, 250], 40, 4)
+        pg.draw.circle(screen, black, [75, 250], 40, 4)
 
         # Menu button with black outline
-        button_menu  = pg.draw.circle(screen, white, [725, 250], 40)
-        button_outl2 = pg.draw.circle(screen, black, [725, 250], 40, 4)
+        button_menu = pg.draw.circle(screen, white, [725, 250], 40)
+        pg.draw.circle(screen, black, [725, 250], 40, 4)
 
         # Button text
         print_line('Reset', 20, 50, 235)
@@ -130,7 +131,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
         # Time left in minutes
         if times_up is False:
-            time_left = math.ceil((480 - top) * resolution / 60)
+            time_left = math.ceil((y_res - top) * resolution / 60)
 
         # Handles the spacing for 0, 1, and double digit numbers
         if len(str(time_spent)) < 2:
@@ -177,16 +178,6 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         # If enough time has passed, remove a layer of pixels
         if check < float(time.time()):
             pg.draw.rect(screen, d_grey, [156, top, 488, 1])        # Fills in the top line with the bkgnd color
-
-            # This "if" statement flashes the background of the timer in shades of grey for the last 5%
-            if top >= 456 and times_up is False:
-                if math.floor(time.time()) % 3 != 0:
-                    pg.draw.rect(screen, m_grey, [150, 3, 500, top - 3], border_top_left_radius=15, border_top_right_radius=15)
-                    pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
-                else:
-                    pg.draw.rect(screen, d_grey, [150, 6, 500, top - 3], border_radius=15)
-                    pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
-
             pg.draw.rect(screen, black, [153, (top + 1), 494, 3])   # Makes the top line thicker & black
             check = float(time.time()) + resolution
             top += 1
@@ -202,13 +193,11 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             menu_tick_one, menu_tick_two = white, white
 
         # If the timer reaches the bottom, it displays "Time is up!" Users can reset or go back to menu
-        if top > 480:
+        if top > y_res:
             times_up      = True
             time_left     = 0
             time_spent    = math.floor(timer / 60)
             time_elapsed  = math.ceil(timer / 60)
-            pg.draw.rect(screen, d_grey, [150, 6, 500, 480], border_radius=15)
-            pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
 
             # If only one minute is set, the grammar will still be correct (and correctly spaced)
             if time_elapsed == 1:
@@ -225,6 +214,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 seconds_displayed = '00'
                 minutes_displayed = '0'
                 time_finished = 1
+
             else:
                 pg.draw.rect(screen, d_grey, [320, 300, 200, 100])
                 seconds_finished  = math.floor(time.time()) - time_finished_start
@@ -339,8 +329,8 @@ def custom_time(done=False):
         pg.draw.rect(screen, black,  [430, 400, 60, 60], 2, border_radius=10)
         print_line('Go', 30, 445, 410)
 
-        button_menu  = pg.draw.circle(screen, white, [725, 400], 40)
-        button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
+        button_menu = pg.draw.circle(screen, white, [725, 400], 40)
+        pg.draw.circle(screen, black, [725, 400], 40, 4)
         print_line('Menu', 30, 700, 385)
 
         for event in pg.event.get():
@@ -350,6 +340,7 @@ def custom_time(done=False):
 
             if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 pos = pg.mouse.get_pos()
+
                 if button_menu.collidepoint(pos):
                     main_screen(done=False)
 
@@ -386,11 +377,8 @@ def custom_time(done=False):
                 if button_zero.collidepoint(pos):
                     timer_custom += '0'
 
-                if button_go.collidepoint(pos):
-                    if timer_custom != '':
-                        timer_screen(False, 0.00, 1, 60 * int(timer_custom))
-                    else:
-                        pass
+                if button_go.collidepoint(pos) and timer_custom != '':
+                    timer_screen(False, 0.00, 1, 60 * int(timer_custom))
 
                 if len(timer_custom) > 6:
                     timer_custom = timer_custom[:-1]
@@ -402,34 +390,47 @@ def custom_time(done=False):
 def help_screen(done=False):
     screen.fill(l_grey)
 
-    uml = pg.image.load('uml.jpg').convert()
-    bw  = pg.image.load('bw.jpg').convert()
+    # This will try to load the UML and Bridgewell images independently. While I think they should be on this screen,
+    # and I cannot foresee a situation in which they would be forgotten, I think it's important to write an exception
+    # clause so the program does not terminate--just in case.
+    try:
+        uml = pg.image.load('uml.jpg').convert()
+        screen.blit(uml, [0, 0])
+    except NameError:
+        pass
+
+    try:
+        bw = pg.image.load('bw.jpg').convert()
+        screen.blit(bw, [700, 0])
+    except NameError:
+        pass
 
     print_line('Bridgewell Visual Timer', 50, 130, 80)
 
-    print_line('This visual timer was designed in the spring of 2021 by capstone engineering students at the University', 15, 40, 180)
+    print_line('This visual timer was designed in the spring of 2021 by capstone'
+               'engineering students at the University', 15, 40, 180)
     print_line('of Massachusetts Lowell for the clients at Bridgewell.', 15, 40, 195)
 
-    print_line('To enter a time, either select a time on the main menu screen, or input a custom time via the number pad', 15, 40, 230)
+    print_line('To enter a time, either select a time on the main menu screen, or'
+               'input a custom time via the number pad', 15, 40, 230)
     print_line('on the "Custom Time" screen.', 15, 40, 245)
 
-    print_line('To reset the timer at the last given time or go back to the main menu from the timer screen, press either', 15, 40, 280)
+    print_line('To reset the timer at the last given time or go back to the main'
+               'menu from the timer screen,press either', 15, 40, 280)
     print_line('button three times within three seconds.', 15, 40, 295)
 
-    print_line('To charge the device, use a USB-C cable connected to a wall wart (most normal phone charger blocks,', 15, 40, 330)
+    print_line('To charge the device, use a USB-C cable connected to a wall wart'
+               '(most normal phone charger blocks,', 15, 40, 330)
     print_line('including those for iPhones, will work).', 15, 40, 345)
 
-    print_line('For any questions not answered in the manual, please contact the creator at:', 15, 40, 380)
+    print_line('For any questions not answered in the manual, please contact the'
+               'software developer at:', 15, 40, 380)
     print_line('Phone: (978) 763-5124', 15, 40, 395)
     print_line('Email: arbowl@tutanota.com', 15, 40, 410)
 
     button_menu = pg.draw.circle(screen, white, [725, 400], 40)
-    button_outl2 = pg.draw.circle(screen, black, [725, 400], 40, 4)
-
+    pg.draw.circle(screen, black, [725, 400], 40, 4)
     print_line('Menu', 20, 700, 385)
-
-    screen.blit(uml, [0, 0])
-    screen.blit(bw, [700, 0])
 
     while not done:
         # Event handler
@@ -452,26 +453,31 @@ def main_screen(done=False):
     screen.fill(l_grey)
 
     # Draws the buttons
-    button_10min   = pg.draw.circle(screen, white, [160, 260], 60)
-    button_10bor   = pg.draw.circle(screen, black, [160, 260], 60, 4)
-    button_15min   = pg.draw.circle(screen, white, [320, 260], 60)
-    button_15bor   = pg.draw.circle(screen, black, [320, 260], 60, 4)
-    button_30min   = pg.draw.circle(screen, white, [480, 260], 60)
-    button_30bor   = pg.draw.circle(screen, black, [480, 260], 60, 4)
-    button_60min   = pg.draw.circle(screen, white, [640, 260], 60)
-    button_60bor   = pg.draw.circle(screen, black, [640, 260], 60, 4)
-    button_custom  = pg.draw.rect(screen, white,   [240, 380, 320, 75], border_radius=15)
-    button_cusbor  = pg.draw.rect(screen, black,   [240, 380, 320, 75], 4, border_radius=15)
-    button_help    = pg.draw.circle(screen, white, [50, 430], 30)
-    button_helpbor = pg.draw.circle(screen, black, [50, 430], 30, 4)
+    button_10min = pg.draw.circle(screen, white, [160, 260], 60)
+    pg.draw.circle(screen, black, [160, 260], 60, 4)
+
+    button_15min = pg.draw.circle(screen, white, [320, 260], 60)
+    pg.draw.circle(screen, black, [320, 260], 60, 4)
+
+    button_30min = pg.draw.circle(screen, white, [480, 260], 60)
+    pg.draw.circle(screen, black, [480, 260], 60, 4)
+
+    button_60min = pg.draw.circle(screen, white, [640, 260], 60)
+    pg.draw.circle(screen, black, [640, 260], 60, 4)
+
+    button_custom = pg.draw.rect(screen,   white, [240, 380,  320, 75], border_radius=15)
+    pg.draw.rect(screen,   black, [240, 380,  320, 75], 4, border_radius=15)
+
+    button_help = pg.draw.circle(screen, white, [50, 430],  30)
+    pg.draw.circle(screen, black, [50, 430],  30, 4)
 
     # Creates the text
-    print_line('10 min', 20, 130, 245)
-    print_line('15 min', 20, 290, 245)
-    print_line('30 min', 20, 450, 245)
-    print_line('60 min', 20, 610, 245)
-    print_line('Custom Time', 20, 340, 400)
-    print_line('Help', 20, 29, 415)
+    print_line('10 min',        20, 130, 245)
+    print_line('15 min',        20, 290, 245)
+    print_line('30 min',        20, 450, 245)
+    print_line('60 min',        20, 610, 245)
+    print_line('Custom Time',   20, 340, 400)
+    print_line('Help',          20, 29,  415)
 
     # Large splash screen text
     print_line('Please select a time:', 50, 170, 80)
