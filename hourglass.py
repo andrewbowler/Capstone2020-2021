@@ -15,9 +15,9 @@
 ## INPUT:       User input (time in minutes)
 ## OUTPUT:      Hourglass timer visuals
 ##
-## REVISED:     20210223
+## REVISED:     20210302
 ##
-## COMMENT:     Fixed time spent/left over/underflow
+## COMMENT:     Changed font to Verdana
 ##**************************************************
 
 import os
@@ -74,7 +74,7 @@ def draw_gradient(r, g, b):
 
 # Easily prints lines of text where maintaining the line as an object isn't important
 def print_line(text, size, x, y):
-    screen.blit(pg.font.SysFont('Verdana', size).render(text, True, black), [x, y])
+    screen.blit(pg.font.SysFont('Comic Sans MS', size).render(text, True, black), [x, y])
 
 
 # The timer screen
@@ -82,7 +82,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
     # Grey background color, draws the timer boundaries, and sets the gradient
     times_up = False
     time_finished = 0
-    menu_tick_one, menu_tick_two = white, white
+    menu_tick_one, menu_tick_two, menu_tick_three    = white, white, white
     reset_tick_one, reset_tick_two, reset_tick_three = white, white, white
     reset_time, menu_time = 0, 0
     reset_counter, menu_counter = 0, 0
@@ -112,7 +112,6 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         pg.draw.rect(screen, black, [55, 300, 40, 20], 4)
         pg.draw.rect(screen, reset_tick_one,   [59, 306, 9, 9], border_radius=3)
         pg.draw.rect(screen, reset_tick_two,   [71, 306, 9, 9], border_radius=3)
-        pg.draw.rect(screen, reset_tick_three, [83, 306, 9, 9], border_radius=3)
         pg.draw.rect(screen, black, [59, 306, 9, 9], 3, border_radius=3)
         pg.draw.rect(screen, black, [71, 306, 9, 9], 3, border_radius=3)
         pg.draw.rect(screen, black, [83, 306, 9, 9], 3, border_radius=3)
@@ -247,6 +246,8 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                     if menu_counter == 2:
                         menu_tick_two = black
                     if menu_counter == 3:
+                        menu_tick_three = black
+                        pg.draw.rect(screen, menu_tick_three, [721, 306, 9, 9], border_radius=3)
                         time.sleep(0.3)
                         main_screen(done=False)
 
@@ -260,6 +261,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                         reset_tick_two = black
                     if reset_counter == 3:
                         reset_tick_three = black
+                        pg.draw.rect(screen, reset_tick_three, [83, 306, 9, 9], border_radius=3)
                         draw_gradient(green[0], green[1], green[2])
                         top = 1
                         check = 0.00
