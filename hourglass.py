@@ -412,23 +412,23 @@ def help_screen(done=False):
     print_line('Bridgewell Visual Timer', 50, 130, 80)
 
     print_line('This visual timer was designed in the spring of 2021 by capstone'
-               'engineering students at the University', 15, 40, 180)
+               ' engineering students at the University', 15, 40, 180)
     print_line('of Massachusetts Lowell for the clients at Bridgewell.', 15, 40, 195)
 
     print_line('To enter a time, either select a time on the main menu screen, or'
-               'input a custom time via the number pad', 15, 40, 230)
+               ' input a custom time via the number pad', 15, 40, 230)
     print_line('on the "Custom Time" screen.', 15, 40, 245)
 
     print_line('To reset the timer at the last given time or go back to the main'
-               'menu from the timer screen,press either', 15, 40, 280)
+               ' menu from the timer screen,press either', 15, 40, 280)
     print_line('button three times within three seconds.', 15, 40, 295)
 
     print_line('To charge the device, use a USB-C cable connected to a wall wart'
-               '(most normal phone charger blocks,', 15, 40, 330)
+               ' (most normal phone charger blocks,', 15, 40, 330)
     print_line('including those for iPhones, will work).', 15, 40, 345)
 
     print_line('For any questions not answered in the manual, please contact the'
-               'software developer at:', 15, 40, 380)
+               ' software developer at:', 15, 40, 380)
     print_line('Phone: (978) 763-5124', 15, 40, 395)
     print_line('Email: arbowl@tutanota.com', 15, 40, 410)
 
