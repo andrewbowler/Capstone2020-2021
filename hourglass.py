@@ -44,8 +44,9 @@ pg.display.set_caption('Visual Timer')  # The window title
 # Use the first screen line for testing and the second for use
 x_res = 800
 y_res = 480
-screen = pg.display.set_mode([x_res, y_res])
-#screen = pg.display.set_mode(size, pg.FULLSCREEN)
+screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
+#screen = pg.display.set_mode([x_res, y_res])
+pg.mouse.set_visible(False)
 
 
 # Function to draw the timer as a gradient from green to yellow to red
@@ -73,7 +74,7 @@ def draw_gradient(r, g, b):
 
 # Easily prints lines of text where maintaining the line as an object isn't important
 def print_line(text, size, x, y):
-    screen.blit(pg.font.SysFont('Comic Sans MS', size).render(text, True, black), [x, y])
+    screen.blit(pg.font.SysFont('Verdana', size).render(text, True, black), [x, y])
 
 
 # The timer screen
@@ -89,22 +90,22 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
     screen.fill(l_grey)
     draw_gradient(green[0], green[1], green[2])
 
+    # Reset button with black outline
+    button_reset = pg.draw.circle(screen, white, [75, 250], 40)
+    pg.draw.circle(screen, black, [75, 250], 40, 4)
+
+    # Menu button with black outline
+    button_menu = pg.draw.circle(screen, white, [725, 250], 40)
+    pg.draw.circle(screen, black, [725, 250], 40, 4)
+
+    # Button text
+    print_line('Reset', 20, 50, 235)
+    print_line('Menu', 20, 700, 235)
+
     # The main loop which ticks the timer down
     while not done:
         # Draws the frame and buttons each loop
         pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
-
-        # Reset button with black outline
-        button_reset = pg.draw.circle(screen, white, [75, 250], 40)
-        pg.draw.circle(screen, black, [75, 250], 40, 4)
-
-        # Menu button with black outline
-        button_menu = pg.draw.circle(screen, white, [725, 250], 40)
-        pg.draw.circle(screen, black, [725, 250], 40, 4)
-
-        # Button text
-        print_line('Reset', 20, 50, 235)
-        print_line('Menu', 20, 700, 235)
 
         # Rectangles and counters for the reset button
         pg.draw.rect(screen, white, [55, 300, 40, 20])
@@ -163,13 +164,13 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
         else:
             left_spacing = 674
 
-        # Rectangles for "time spent"
+        # Time value for "time spent"
         pg.draw.rect(screen, white, [20, 20, 110, 100], border_radius=15)
         pg.draw.rect(screen, black, [20, 20, 110, 100], 4, border_radius=15)
         print_line('Time Spent:', 15, 33, 30)
         print_line(str(time_spent) + spent_minute, 20, spent_spacing, 65)
 
-        # Rectangles for "time left"
+        # Time value for "time left"
         pg.draw.rect(screen, white, [670, 20, 110, 100], border_radius=15)
         pg.draw.rect(screen, black, [670, 20, 110, 100], 4, border_radius=15)
         print_line('Time Left:', 15, 690, 30)
@@ -213,7 +214,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 time_finished_start = math.floor(time.time())
                 seconds_displayed = '00'
                 minutes_displayed = '0'
-                time_finished = 1
+                time_finished     = 1
 
             else:
                 pg.draw.rect(screen, d_grey, [320, 300, 200, 100])
@@ -229,12 +230,12 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             print_line('Time is up!', 50, 270, 180)
             print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
 
-        # Handles closing the window or any button presses
+        # Event handler
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
 
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == FINGERUP:
                 pos = pg.mouse.get_pos()
 
                 if button_menu.collidepoint(pos):
@@ -246,6 +247,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                     if menu_counter == 2:
                         menu_tick_two = black
                     if menu_counter == 3:
+                        time.sleep(0.3)
                         main_screen(done=False)
 
                 if button_reset.collidepoint(pos):
@@ -331,14 +333,14 @@ def custom_time(done=False):
 
         button_menu = pg.draw.circle(screen, white, [725, 400], 40)
         pg.draw.circle(screen, black, [725, 400], 40, 4)
-        print_line('Menu', 30, 700, 385)
+        print_line('Menu', 20, 700, 385)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
                 exit()
 
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == FINGERUP:
                 pos = pg.mouse.get_pos()
 
                 if button_menu.collidepoint(pos):
@@ -439,7 +441,7 @@ def help_screen(done=False):
                 done = True
                 exit()
 
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == FINGERUP:
                 pos = pg.mouse.get_pos()
 
                 if button_menu.collidepoint(pos):
@@ -489,7 +491,7 @@ def main_screen(done=False):
                 done = True
                 exit()
 
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == FINGERUP:
                 pos = pg.mouse.get_pos()
 
                 if button_10min.collidepoint(pos):
@@ -516,3 +518,8 @@ def main_screen(done=False):
 main_screen()
 
 pg.quit()   # IDLE-friendly exit line
+
+#TODO:
+# 1. Add battery status via soldering wires from UPS to GPIO & coding it
+#    (Need soldering iron)
+# 2. Time timer on pi to see if it's accurate
