@@ -15,9 +15,9 @@
 ## INPUT:       User input (time in minutes)
 ## OUTPUT:      Hourglass timer visuals
 ##
-## REVISED:     20210302
+## REVISED:     20210312
 ##
-## COMMENT:     Changed font to Verdana
+## COMMENT:     Refactoring and escape command
 ##**************************************************
 
 import os
@@ -37,15 +37,18 @@ yellow = (232, 205, 160)
 red    = (240, 180, 159)
 
 pg.init()                               # Starts the PyGame engine
-pg.display.set_caption('Visual Timer')  # The window title
+pg.display.set_caption('Visual Timer')  # The program title
 
 # Set the height and width of the screen
 # RasPi 7" screen is 800x480
-# Use the first screen line for testing and the second for use
 x_res = 800
 y_res = 480
-screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
+
+### COMMENT THIS LINE OUT IF TESTING ON PI
 #screen = pg.display.set_mode([x_res, y_res])
+
+### COMMENT THESE LINES OUT IF TESTING ON PC
+screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
 pg.mouse.set_visible(False)
 
 
@@ -248,7 +251,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                     if menu_counter == 3:
                         menu_tick_three = black
                         pg.draw.rect(screen, menu_tick_three, [721, 306, 9, 9], border_radius=3)
-                        time.sleep(0.3)
+                        time.sleep(1)
                         main_screen(done=False)
 
                 if button_reset.collidepoint(pos):
@@ -523,5 +526,15 @@ pg.quit()   # IDLE-friendly exit line
 
 #TODO:
 # 1. Add battery status via soldering wires from UPS to GPIO & coding it
-#    (Need soldering iron)
 # 2. Time timer on pi to see if it's accurate
+# 3. Add inactivity timer which shuts the system down
+# 4. Secret breakout command (e.g. press esc to cancel)
+# 5. Battery charge rate
+# 6. Battery overcharge viability
+# 7. Schematic/assembly diagram
+
+# Responsible:
+# - Test battery
+# - Advise on schematic
+# - Breakout command
+# - Email Palma battery details
