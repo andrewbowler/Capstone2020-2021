@@ -45,11 +45,11 @@ x_res = 800
 y_res = 480
 
 ### COMMENT THIS LINE OUT IF TESTING ON PI
-#screen = pg.display.set_mode([x_res, y_res])
+screen = pg.display.set_mode([x_res, y_res])
 
 ### COMMENT THESE LINES OUT IF TESTING ON PC
-screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
-pg.mouse.set_visible(False)
+#screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
+#pg.mouse.set_visible(False)
 
 
 # Function to draw the timer as a gradient from green to yellow to red
@@ -479,10 +479,10 @@ def main_screen(done=False):
     pg.draw.circle(screen, black, [50, 430],  30, 4)
 
     # Creates the text
-    print_line('10 min',        20, 130, 245)
-    print_line('15 min',        20, 290, 245)
-    print_line('30 min',        20, 450, 245)
-    print_line('60 min',        20, 610, 245)
+    print_line('5 min',         20, 135, 245)
+    print_line('10 min',        20, 290, 245)
+    print_line('15 min',        20, 450, 245)
+    print_line('30 min',        20, 610, 245)
     print_line('Custom Time',   20, 340, 400)
     print_line('Help',          20, 29,  415)
 
@@ -500,16 +500,16 @@ def main_screen(done=False):
                 pos = pg.mouse.get_pos()
 
                 if button_10min.collidepoint(pos):
-                    timer_screen(False, 0.00, 1, 600)
+                    timer_screen(False, 0.00, 1, 300)
 
                 if button_15min.collidepoint(pos):
-                    timer_screen(False, 0.00, 1, 900)
+                    timer_screen(False, 0.00, 1, 600)
 
                 if button_30min.collidepoint(pos):
-                    timer_screen(False, 0.00, 1, 1800)
+                    timer_screen(False, 0.00, 1, 900)
 
                 if button_60min.collidepoint(pos):
-                    timer_screen(False, 0.00, 1, 3600)
+                    timer_screen(False, 0.00, 1, 1800)
 
                 if button_custom.collidepoint(pos):
                     custom_time()
@@ -532,9 +532,3 @@ pg.quit()   # IDLE-friendly exit line
 # 5. Battery charge rate
 # 6. Battery overcharge viability
 # 7. Schematic/assembly diagram
-
-# Responsible:
-# - Test battery
-# - Advise on schematic
-# - Breakout command
-# - Email Palma battery details
