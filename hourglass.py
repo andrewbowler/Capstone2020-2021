@@ -24,6 +24,8 @@ import os
 import sys
 import time
 import math
+import smbus
+import struct
 import pygame as pg
 from pygame.locals import *
 
@@ -51,6 +53,20 @@ screen = pg.display.set_mode([x_res, y_res])
 #screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
 #pg.mouse.set_visible(False)
 
+# I2C1 bus for reading capacity
+bus = smbus.SMBus(1)
+
+
+# Function for reading the current battery level using I2C @ GPIO3
+def read_capacity(bus):
+     address = 0x36
+     read = bus.read_word_data(address, 4)
+     swapped = struct.unpack("<H", struct.pack(">H", read))[0]
+     capacity = swapped/256
+     if capacity > 100:
+        capacity = 100
+     return math.floor(capacity)
+
 
 # Function to draw the timer as a gradient from green to yellow to red
 def draw_gradient(r, g, b):
@@ -73,6 +89,39 @@ def draw_gradient(r, g, b):
             b -= abs((yellow[2] - red[2])) / (y_res / 3)
 
         pg.display.flip()
+
+
+# Generates the battery level indicator object
+def battery_indicator(battery_capacity, left, top, width, height):
+    dist = width + 1
+    pg.draw.rect(screen, l_grey, [left - 41, top - 1,  width * 10, height + 2])
+    
+    if battery_capacity > 20:
+        pg.draw.rect(screen, red, [left, top,  width, height])
+
+    if battery_capacity > 30:
+        pg.draw.rect(screen, yellow, [left + dist, top,  width, height])
+
+    if battery_capacity > 40:
+        pg.draw.rect(screen, yellow, [left + dist * 2, top,  width, height])
+
+    if battery_capacity > 50:
+        pg.draw.rect(screen, green, [left + dist * 3, top,  width, height])
+
+    if battery_capacity > 60:
+        pg.draw.rect(screen, green, [left + dist * 4, top,  width, height])
+
+    if battery_capacity > 70:
+        pg.draw.rect(screen, green, [left + dist * 5, top,  width, height])
+
+    if battery_capacity > 80:
+        pg.draw.rect(screen, green, [left + dist * 6, top,  width, height])
+
+    if battery_capacity > 90:
+        pg.draw.rect(screen, green, [left + dist * 7, top,  width, height])
+
+    pg.draw.rect(screen, black, [left - 3, top,  width * 9 + 3, height], 3, border_radius=1)
+    print_line(str(battery_capacity) + '%', 15, left - 40, height - 12)
 
 
 # Easily prints lines of text where maintaining the line as an object isn't important
@@ -107,6 +156,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
     # The main loop which ticks the timer down
     while not done:
+        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
         # Draws the frame and buttons each loop
         pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
 
@@ -167,16 +217,16 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             left_spacing = 674
 
         # Time value for "time spent"
-        pg.draw.rect(screen, white, [20, 20, 110, 100], border_radius=15)
-        pg.draw.rect(screen, black, [20, 20, 110, 100], 4, border_radius=15)
-        print_line('Time Spent:', 15, 33, 30)
-        print_line(str(time_spent) + spent_minute, 20, spent_spacing, 65)
+        pg.draw.rect(screen, white, [20, 50, 110, 100], border_radius=15)
+        pg.draw.rect(screen, black, [20, 50, 110, 100], 4, border_radius=15)
+        print_line('Time Spent:', 15, 33, 50)
+        print_line(str(time_spent) + spent_minute, 20, spent_spacing, 85)
 
         # Time value for "time left"
-        pg.draw.rect(screen, white, [670, 20, 110, 100], border_radius=15)
-        pg.draw.rect(screen, black, [670, 20, 110, 100], 4, border_radius=15)
-        print_line('Time Left:', 15, 690, 30)
-        print_line(str(time_left) + left_minute, 20, left_spacing, 65)
+        pg.draw.rect(screen, white, [670, 50, 110, 100], border_radius=15)
+        pg.draw.rect(screen, black, [670, 50, 110, 100], 4, border_radius=15)
+        print_line('Time Left:', 15, 690, 50)
+        print_line(str(time_left) + left_minute, 20, left_spacing, 85)
 
         # If enough time has passed, remove a layer of pixels
         if check < float(time.time()):
@@ -280,66 +330,65 @@ def custom_time(done=False):
     screen.fill(l_grey)
     timer_custom = ''
 
-    while not done:
-        print_line('Enter your time (minutes):', 50, 100, 50)
+    print_line('Enter your time (minutes):', 50, 100, 50)
 
+    button_one = pg.draw.rect(screen, d_grey, [310, 220, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [310, 220, 60, 60], 2, border_radius=10)
+    print_line('1', 30, 333, 230)
+
+    button_two = pg.draw.rect(screen, d_grey, [370, 220, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [370, 220, 60, 60], 2, border_radius=10)
+    print_line('2', 30, 393, 230)
+
+    button_three = pg.draw.rect(screen, d_grey, [430, 220, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [430, 220, 60, 60], 2, border_radius=10)
+    print_line('3', 30, 453, 230)
+
+    button_four = pg.draw.rect(screen, d_grey, [310, 280, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [310, 280, 60, 60], 2, border_radius=10)
+    print_line('4', 30, 333, 290)
+
+    button_five = pg.draw.rect(screen, d_grey, [370, 280, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [370, 280, 60, 60], 2, border_radius=10)
+    print_line('5', 30, 393, 290)
+
+    button_six = pg.draw.rect(screen, d_grey, [430, 280, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [430, 280, 60, 60], 2, border_radius=10)
+    print_line('6', 30, 453, 290)
+
+    button_seven = pg.draw.rect(screen, d_grey, [310, 340, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [310, 340, 60, 60], 2, border_radius=10)
+    print_line('7', 30, 333, 350)
+
+    button_eight = pg.draw.rect(screen, d_grey, [370, 340, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [370, 340, 60, 60], 2, border_radius=10)
+    print_line('8', 30, 393, 350)
+
+    button_nine = pg.draw.rect(screen, d_grey, [430, 340, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [430, 340, 60, 60], 2, border_radius=10)
+    print_line('9', 30, 453, 350)
+
+    button_del = pg.draw.rect(screen, red,    [310, 400, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [310, 400, 60, 60], 2, border_radius=10)
+    print_line('Del', 30, 317, 410)
+
+    button_zero = pg.draw.rect(screen, d_grey, [370, 400, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [370, 400, 60, 60], 2, border_radius=10)
+    print_line('0', 30, 393, 410)
+
+    button_go = pg.draw.rect(screen, green,  [430, 400, 60, 60], border_radius=10)
+    pg.draw.rect(screen, black,  [430, 400, 60, 60], 2, border_radius=10)
+    print_line('Go', 30, 445, 410)
+
+    button_menu = pg.draw.circle(screen, white, [725, 400], 40)
+    pg.draw.circle(screen, black, [725, 400], 40, 4)
+    print_line('Menu', 20, 700, 385)
+
+    while not done:
+        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
         pg.draw.rect(screen, white, [290, 150, 220, 60], border_radius=10)
         pg.draw.rect(screen, black, [290, 150, 220, 60], 6, border_radius=10)
-
         print_line(timer_custom, 30, 300, 157)
-
-        button_one = pg.draw.rect(screen, d_grey, [310, 220, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [310, 220, 60, 60], 2, border_radius=10)
-        print_line('1', 30, 333, 230)
-
-        button_two = pg.draw.rect(screen, d_grey, [370, 220, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [370, 220, 60, 60], 2, border_radius=10)
-        print_line('2', 30, 393, 230)
-
-        button_three = pg.draw.rect(screen, d_grey, [430, 220, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [430, 220, 60, 60], 2, border_radius=10)
-        print_line('3', 30, 453, 230)
-
-        button_four = pg.draw.rect(screen, d_grey, [310, 280, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [310, 280, 60, 60], 2, border_radius=10)
-        print_line('4', 30, 333, 290)
-
-        button_five = pg.draw.rect(screen, d_grey, [370, 280, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [370, 280, 60, 60], 2, border_radius=10)
-        print_line('5', 30, 393, 290)
-
-        button_six = pg.draw.rect(screen, d_grey, [430, 280, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [430, 280, 60, 60], 2, border_radius=10)
-        print_line('6', 30, 453, 290)
-
-        button_seven = pg.draw.rect(screen, d_grey, [310, 340, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [310, 340, 60, 60], 2, border_radius=10)
-        print_line('7', 30, 333, 350)
-
-        button_eight = pg.draw.rect(screen, d_grey, [370, 340, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [370, 340, 60, 60], 2, border_radius=10)
-        print_line('8', 30, 393, 350)
-
-        button_nine = pg.draw.rect(screen, d_grey, [430, 340, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [430, 340, 60, 60], 2, border_radius=10)
-        print_line('9', 30, 453, 350)
-
-        button_del = pg.draw.rect(screen, red,    [310, 400, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [310, 400, 60, 60], 2, border_radius=10)
-        print_line('Del', 30, 317, 410)
-
-        button_zero = pg.draw.rect(screen, d_grey, [370, 400, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [370, 400, 60, 60], 2, border_radius=10)
-        print_line('0', 30, 393, 410)
-
-        button_go = pg.draw.rect(screen, green,  [430, 400, 60, 60], border_radius=10)
-        pg.draw.rect(screen, black,  [430, 400, 60, 60], 2, border_radius=10)
-        print_line('Go', 30, 445, 410)
-
-        button_menu = pg.draw.circle(screen, white, [725, 400], 40)
-        pg.draw.circle(screen, black, [725, 400], 40, 4)
-        print_line('Menu', 20, 700, 385)
-
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 done = True
@@ -403,13 +452,7 @@ def help_screen(done=False):
     try:
         uml = pg.image.load('uml.jpg').convert()
         screen.blit(uml, [0, 0])
-    except NameError:
-        pass
-
-    try:
-        bw = pg.image.load('bw.jpg').convert()
-        screen.blit(bw, [700, 0])
-    except NameError:
+    except:
         pass
 
     print_line('Bridgewell Visual Timer', 50, 130, 80)
@@ -440,6 +483,7 @@ def help_screen(done=False):
     print_line('Menu', 20, 700, 385)
 
     while not done:
+        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
         # Event handler
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -490,6 +534,7 @@ def main_screen(done=False):
     print_line('Please select a time:', 50, 170, 80)
 
     while not done:
+        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
         # Event handler
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -523,12 +568,3 @@ def main_screen(done=False):
 main_screen()
 
 pg.quit()   # IDLE-friendly exit line
-
-#TODO:
-# 1. Add battery status via soldering wires from UPS to GPIO & coding it
-# 2. Time timer on pi to see if it's accurate
-# 3. Add inactivity timer which shuts the system down
-# 4. Secret breakout command (e.g. press esc to cancel)
-# 5. Battery charge rate
-# 6. Battery overcharge viability
-# 7. Schematic/assembly diagram
