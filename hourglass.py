@@ -34,9 +34,9 @@ black  = (  0,   0,   0)
 white  = (255, 255, 255)
 d_grey = (166, 166, 166)
 l_grey = (220, 220, 220)
-green  = (182, 214, 193)
-yellow = (232, 205, 160)
-red    = (240, 180, 159)
+green  = (162, 194, 173)
+yellow = (213, 185, 140)
+red    = (220, 160, 139)
 
 pg.init()                               # Starts the PyGame engine
 pg.display.set_caption('Visual Timer')  # The program title
@@ -47,11 +47,11 @@ x_res = 800
 y_res = 480
 
 ### COMMENT THIS LINE OUT IF TESTING ON PI
-screen = pg.display.set_mode([x_res, y_res])
+#screen = pg.display.set_mode([x_res, y_res])
 
 ### COMMENT THESE LINES OUT IF TESTING ON PC
-#screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
-#pg.mouse.set_visible(False)
+screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
+pg.mouse.set_visible(False)
 
 # I2C1 bus for reading capacity
 bus = smbus.SMBus(1)
