@@ -26,6 +26,7 @@ import time
 import math
 import smbus
 import struct
+import subprocess
 import pygame as pg
 from pygame.locals import *
 
@@ -47,11 +48,11 @@ x_res = 800
 y_res = 480
 
 ### COMMENT THIS LINE OUT IF TESTING ON PI
-#screen = pg.display.set_mode([x_res, y_res])
+screen = pg.display.set_mode([x_res, y_res])
 
 ### COMMENT THESE LINES OUT IF TESTING ON PC
-screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
-pg.mouse.set_visible(False)
+#screen = pg.display.set_mode([x_res, y_res], pg.FULLSCREEN)
+#pg.mouse.set_visible(False)
 
 # I2C1 bus for reading capacity
 bus = smbus.SMBus(1)
@@ -66,6 +67,12 @@ def read_capacity(bus):
      if capacity > 100:
         capacity = 100
      return math.floor(capacity)
+
+
+def shutdown():
+    command = '/usr/bin/sudo /sbin/shutdown -r now'
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    output = process.communicate()[0]
 
 
 # Function to draw the timer as a gradient from green to yellow to red
@@ -94,7 +101,7 @@ def draw_gradient(r, g, b):
 # Generates the battery level indicator object
 def battery_indicator(battery_capacity, left, top, width, height):
     dist = width + 1
-    pg.draw.rect(screen, l_grey, [left - 41, top - 1,  width * 10, height + 2])
+    pg.draw.rect(screen, l_grey, [left - 31, top - 1,  width * 10, height + 2])
     
     if battery_capacity > 20:
         pg.draw.rect(screen, red, [left, top,  width, height])
@@ -121,7 +128,7 @@ def battery_indicator(battery_capacity, left, top, width, height):
         pg.draw.rect(screen, green, [left + dist * 7, top,  width, height])
 
     pg.draw.rect(screen, black, [left - 3, top,  width * 9 + 3, height], 3, border_radius=1)
-    print_line(str(battery_capacity) + '%', 15, left - 40, height - 12)
+    print_line(str(battery_capacity) + '%', 15, left + width * 3, top + 3)
 
 
 # Easily prints lines of text where maintaining the line as an object isn't important
@@ -156,7 +163,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
 
     # The main loop which ticks the timer down
     while not done:
-        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
+        battery_indicator(read_capacity(bus), 682, 10, 10, 30)
         # Draws the frame and buttons each loop
         pg.draw.rect(screen, black, [150, 0, 500, 480], 6, border_radius=10)
 
@@ -269,7 +276,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 time_finished     = 1
 
             else:
-                pg.draw.rect(screen, d_grey, [320, 300, 200, 100])
+                pg.draw.rect(screen, d_grey, [220, 300, 350, 100])
                 seconds_finished  = math.floor(time.time()) - time_finished_start
                 minutes_displayed = str(math.floor(seconds_finished / 60))
                 seconds_displayed = str(math.floor(seconds_finished) % 60)
@@ -280,7 +287,16 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 print_line(minutes_displayed + ':' + seconds_displayed, 30, 365, 350)
 
             print_line('Time is up!', 50, 270, 180)
+            print_line('Shutting down in 2 minutes.', 25, 235, 320)
             print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
+            
+            # Automatic shutdown after 2 minutes
+            try:
+                if minutes_displayed == 2:
+                    shutdown()
+            # (seconds_finished is not assigned right when the timer runs out)
+            except UnboundLocalError:
+                pass
 
         # Event handler
         for event in pg.event.get():
@@ -385,7 +401,8 @@ def custom_time(done=False):
     print_line('Menu', 20, 700, 385)
 
     while not done:
-        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
+        battery_indicator(read_capacity(bus), 682, 10, 10, 30)
+
         pg.draw.rect(screen, white, [290, 150, 220, 60], border_radius=10)
         pg.draw.rect(screen, black, [290, 150, 220, 60], 6, border_radius=10)
         print_line(timer_custom, 30, 300, 157)
@@ -483,7 +500,8 @@ def help_screen(done=False):
     print_line('Menu', 20, 700, 385)
 
     while not done:
-        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
+        battery_indicator(read_capacity(bus), 682, 10, 10, 30)
+
         # Event handler
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -534,7 +552,8 @@ def main_screen(done=False):
     print_line('Please select a time:', 50, 170, 80)
 
     while not done:
-        battery_indicator(read_capacity(bus), 705, 15, 10, 30)
+        battery_indicator(read_capacity(bus), 682, 10, 10, 30)
+        
         # Event handler
         for event in pg.event.get():
             if event.type == pg.QUIT:
