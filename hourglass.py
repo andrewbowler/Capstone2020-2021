@@ -70,7 +70,7 @@ def read_capacity(bus):
 
 
 def shutdown():
-    command = '/usr/bin/sudo /sbin/shutdown -r now'
+    command = '/usr/bin/sudo /sbin/shutdown -h now'
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     output = process.communicate()[0]
 
@@ -284,7 +284,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 if len(seconds_displayed) == 1:
                     seconds_displayed = '0' + seconds_displayed
 
-                print_line(minutes_displayed + ':' + seconds_displayed, 30, 365, 350)
+                print_line(minutes_displayed + ':' + seconds_displayed, 30, 377, 350)
 
             print_line('Time is up!', 50, 270, 180)
             print_line('Shutting down in 2 minutes.', 25, 235, 320)
@@ -292,7 +292,7 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
             
             # Automatic shutdown after 2 minutes
             try:
-                if minutes_displayed == 2:
+                if minutes_displayed == '2':
                     shutdown()
             # (seconds_finished is not assigned right when the timer runs out)
             except UnboundLocalError:
