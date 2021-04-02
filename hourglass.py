@@ -8,7 +8,7 @@ import subprocess
 import pygame as pg
 from pygame.locals import *
 
-# Declares the color values; these are purposely muted to be easy on the eyes
+# Declares the color values; these are purposely muted to be easy on the eyes 
 black  = (  0,   0,   0)
 white  = (255, 255, 255)
 d_grey = (166, 166, 166)
