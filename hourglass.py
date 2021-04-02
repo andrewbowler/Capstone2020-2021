@@ -1,25 +1,3 @@
-##**************************************************
-## FILE:        hourglass.py
-## PROJECT:     Bridgewell Visual Timer
-## DATE:        20210222
-## AUTHOR:      Drew Bowler
-## PHONE #:     (978) 763-5124
-## EMAIL:       arbowl@tutanota.com
-##
-## PURPOSE:     To display a visual hourglass timer
-##              to track the passage of time for
-##              those with cognitive impairments
-##              that struggle to intuitively
-##              understand traditional clocks.
-##
-## INPUT:       User input (time in minutes)
-## OUTPUT:      Hourglass timer visuals
-##
-## REVISED:     20210312
-##
-## COMMENT:     Refactoring and escape command
-##**************************************************
-
 import os
 import sys
 import time
