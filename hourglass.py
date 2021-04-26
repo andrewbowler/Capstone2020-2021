@@ -48,10 +48,10 @@ def read_capacity(bus):
 
 
 def shutdown():
-    command = '/usr/bin/sudo /sbin/shutdown -h now'
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    output = process.communicate()[0]
-
+    #command = '/usr/bin/sudo /sbin/shutdown -h now'
+    #process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    #output = process.communicate()[0]
+    return
 
 # Function to draw the timer as a gradient from green to yellow to red
 def draw_gradient(r, g, b):
@@ -265,16 +265,16 @@ def timer_screen(done=False, check=0.00, top=1, timer=60):
                 print_line(minutes_displayed + ':' + seconds_displayed, 30, 377, 350)
 
             print_line('Time is up!', 50, 270, 180)
-            print_line('Shutting down in 2 minutes.', 25, 235, 320)
+            #print_line('Shutting down in 2 minutes.', 25, 235, 320)
             print_line('(' + str(time_elapsed) + elapsed_minute, 30, elapsed_spacing, 250)
             
             # Automatic shutdown after 2 minutes
-            try:
-                if minutes_displayed == '2':
-                    shutdown()
+            #try:
+            #    if minutes_displayed == '2':
+            #        shutdown()
             # (seconds_finished is not assigned right when the timer runs out)
-            except UnboundLocalError:
-                pass
+            #except UnboundLocalError:
+            #    pass
 
         # Event handler
         for event in pg.event.get():
